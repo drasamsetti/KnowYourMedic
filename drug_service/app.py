@@ -4,7 +4,7 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 from flask import abort
-
+import psycopg2
 
 
 import os
@@ -13,11 +13,12 @@ from werkzeug import secure_filename
 from flask import send_from_directory
 
 from DrugAnalyzer import *
+#from DrugAnalysis import *
 
+from TextParser  import *
 
 UPLOAD_FOLDER = '/home/user/wspace/labs/python/rest/uploads/'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
-
 
 app = Flask(__name__)
 
@@ -27,11 +28,40 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def index():
     return "Know your drug -> Drug service"
 
+@app.route('/db_check')
+def db_check():
+
+    con = psycopg2.connect(database='health_care', host='localhost', user='postgres', password='postgres')
+    cur = con.cursor()
+    cur.execute('SELECT version()')
+    ver = cur.fetchone()
+    return ver
+
+@app.route('/drug_service/api/v1/peek', methods=['POST'])
+def drug_peek():
+    data = request.data
+
+    if not data:
+        data = request.form.keys()[0]
+
+    p = TextParser(data)
+
+    output = p.get_drug_data()
+    print output
+
+    # d = DrugAnalyzer(p.get_drug_data())
+    # d.add_summary("Summary item 1")
+    # d.check_data()
+
+    #output = "Drug: Unknown \nSummary: To be analyzed \nCaution: No Applicable\n"
+
+    return output
+
 
 @app.route('/drug_service/api/v1/check', methods=['POST'])
 def check():
     if not request.json or not 'drug' in request.json:
-         abort(400)
+         return 'Post service called without proper payload'
 
     #print "Drug check service called"
     drug = {
@@ -102,7 +132,7 @@ def uploaded_file(filename):
 #                                filename)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
 
 
 

@@ -5,14 +5,22 @@ import json
 
 class DrugAnalyzer:
 
-    def __init__(self, json_data):
-        self.json_data = json.loads(json_data)
-        self.summary = []
-        print self.json_data['drug']
+    def __init__(self, data):
+        self.input_data = data
+        self.summary = "To be defined"
+
         print "Class initialized"
 
     def check_data(self):
         print 'check data invoked'
+
+        drug_list = self.input_data.splitlines()
+        print "Drug list", self.input_data.split("\\n")
+        print "Drug compound len", str(len(drug_list))
+
+        aDrug_Name = drug_list[0]
+        self.summary += "Drug Name: ", aDrug_Name
+
         con = None
 
         try:
